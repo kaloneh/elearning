@@ -1,3 +1,4 @@
+dist: trusty
 language: python
 python:
   - "3.6"
@@ -5,7 +6,40 @@ python:
 services:
   - docker
 
-before_script: pip install docker-compose
+addons:
+  postgresql: "10"
+
+env:
+  - TOX_ENV=py36
+  - TOX_ENV=py36-raw
+install:
+  - pip install tox
+
+before_script:
+  - pip install docker-compose
+#    - echo "Pull request ${TRAVIS_PULL_REQUEST}"
+#  some postgres test unit should be added
 
 script:
   - docker-compose run app sh -c "python manage.py test && flake8"
+  - tox -e $TOX_ENV
+
+after_success:
+  # Report coverage results to coveralls.io
+  - pip install coveralls
+  - coveralls
+
+#matrix:
+#  include:
+#    - python: 3.7
+#      dist: xenial
+#      env:
+#        - ENV=code-lint
+#      script:
+#        - make lint
+#
+#    - python: 3.7
+#      dist: xenial
+#      env:
+#        - ENV=docs
+#      script: make docs
